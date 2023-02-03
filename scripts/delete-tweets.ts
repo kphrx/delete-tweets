@@ -9,9 +9,35 @@ import { Piscina } from "piscina";
 import fs from "fs/promises";
 import { TwitterApi } from "twitter-api-v2";
 
+import meow from "meow";
 import { config } from "dotenv";
 import type { ToDeleteTweetLine } from "./detect";
 
+export const cli = meow(
+    `
+    Usage
+      $ yarn delete-tweets
+ 
+    Options
+      --useApiV1      Use Twitter API v1.1
+
+    Examples
+      # Twitter API v2
+      $ yarn delete-tweets
+      # Twitter API v1.1
+      $ yarn delete-tweets --api-v1
+`,
+    {
+        importMeta: import.meta,
+        flags: {
+            useApiV1: {
+                type: 'boolean'
+            }
+        },
+        autoHelp: true,
+        autoVersion: true
+    }
+);
 const __filename = url.fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const dataDir = path.join(__dirname, "../data");
@@ -56,7 +82,11 @@ export async function deleteTweets(tweetsJsonFilePath: string, deletedTweetsFile
     });
     const deleteTweet = async (tweet: ToDeleteTweetLine) => {
         try {
-            await client.v2.delete(tweet.id);
+            if (cli.flags.useApiV1) {
+                await twitter.v1.post(`statuses/destroy/${tweet.id}.json`);
+            } else {
+                await client.v2.delete(tweet.id);
+            }
         } catch (error: any) {
             if (error.code === 404) {
                 return; // already deleted
