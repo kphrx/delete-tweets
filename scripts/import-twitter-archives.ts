@@ -19,7 +19,7 @@ export async function importArchives(tweetsJsonFilePath: string) {
     });
     const filePathsList = dirents
         .filter((dirent) => {
-            return dirent.isFile() && dirent.name.startsWith("tweet") && path.extname(dirent.name) === ".js";
+            return dirent.isFile() && dirent.name.startsWith("tweets") && path.extname(dirent.name) === ".js";
         })
         .map((dirent) => {
             return path.join(twitterArchivesDir, dirent.name);
@@ -27,7 +27,7 @@ export async function importArchives(tweetsJsonFilePath: string) {
     const fileContentList: SearchKeywordResponse[][] = await Promise.all(
         filePathsList.map(async (filePath) => {
             const content = await fs.readFile(filePath, "utf-8");
-            const json = content.replace(/^window.YTD.tweet.part\d+\s=\s*/, "");
+            const json = content.replace(/^window.YTD.tweets.part\d+\s=\s*/, "");
             return JSON.parse(json);
         })
     );
